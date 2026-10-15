@@ -1,0 +1,54 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  deployments: write   # prune old deployment records after each deploy
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the APK from the original author's apk-r24 release (build input only, not stored in this fork)
+        run: gh release download apk-r24 -R LESANF/hero-lord-web -p '*.apk' -O game.apk
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: APK -> PCK -> web (template streamed out of the official tpz)
+        run: ./build.sh game.apk
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Keep only this deployment record
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          keep=$(gh api "repos/$REPO/deployments?environment=github-pages&per_page=1" --jq '.[0].id')
+          for id in $(gh api "repos/$REPO/deployments?per_page=100" --jq '.[].id'); do
+            [ "$id" = "$keep" ] && continue
+            gh api -X POST "repos/$REPO/deployments/$id/statuses" -f state=inactive >/dev/null
+            gh api -X DELETE "repos/$REPO/deployments/$id"
+          done
+          echo "kept deployment $keep"
