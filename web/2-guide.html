@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>가이드 · 영웅서기 솔티아의 바람: 리마스터</title>
+<style>
+:root { --bg:#0b1326; --card:#111d38; --line:rgba(255,255,255,.1); --gold:#ffd56b; --text:#e9eefc; --mute:#9fb0d8; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:15px/1.7 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; }
+.hero { position:relative; padding:64px 20px 48px; text-align:center; background:#0b1326 url(img/loading.jpg) center/cover no-repeat; }
+.hero::before { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(8,14,30,.35),rgba(8,14,30,.92)); }
+.hero > * { position:relative; }
+.hero img { width:min(70vw,420px); filter:drop-shadow(0 6px 22px rgba(0,0,0,.6)); }
+.hero h1 { margin:14px 0 6px; font-size:26px; color:var(--gold); }
+.hero p { margin:0 0 20px; color:var(--mute); }
+.play { display:inline-block; padding:12px 28px; border-radius:999px; background:linear-gradient(90deg,#ffd56b,#fff4c2); color:#3a2f2a; font-weight:700; text-decoration:none; box-shadow:0 0 18px rgba(255,214,110,.5); }
+main { max-width:860px; margin:0 auto; padding:24px 18px 64px; }
+section { margin:22px 0; padding:20px 22px; background:var(--card); border:1px solid var(--line); border-radius:14px; }
+h2 { margin:0 0 10px; font-size:19px; color:var(--gold); }
+h3 { margin:16px 0 6px; font-size:15px; color:#cfd9f5; }
+table { width:100%; border-collapse:collapse; margin:8px 0; }
+th,td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--mute); font-size:12px; font-weight:600; }
+kbd { font:600 12px/1 ui-monospace,monospace; padding:4px 7px; border-radius:5px; background:#26385f; border:1px solid #3d5486; border-bottom-width:2px; color:#fff; white-space:nowrap; }
+.fire{color:#ff9a7a} .water{color:#7cc6ff} .earth{color:#d9b56c}
+.note { padding:10px 12px; border-radius:8px; background:rgba(255,214,110,.08); border:1px solid rgba(255,214,110,.25); font-size:13px; margin-top:12px; }
+ul { padding-left:20px; } a { color:#8fc2ff; }
+footer { text-align:center; color:var(--mute); font-size:13px; padding:0 18px 40px; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <img src="img/logo.webp" alt="영웅서기 솔티아의 바람: 리마스터">
+  <h1>플레이 가이드</h1>
+  <p>조작법 · 주인공 · 가디언 · 팁</p>
+  <a class="play" href="./">게임 시작</a>
+</div>
+<main>
+  <section>
+    <h2>조작법</h2>
+    <table>
+      <tr><th>동작</th><th>키</th></tr>
+      <tr><td>이동</td><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 또는 방향키</td></tr>
+      <tr><td>일반 공격 / 대화 / 조사</td><td><kbd>Space</kbd> <kbd>Enter</kbd></td></tr>
+      <tr><td>강공격</td><td><kbd>X</kbd></td></tr>
+      <tr><td>가디언 스킬 1 / 2</td><td><kbd>1</kbd> / <kbd>3</kbd></td></tr>
+      <tr><td>포션(아이템)</td><td><kbd>Q</kbd></td></tr>
+      <tr><td>슬롯 교체</td><td><kbd>E</kbd> <kbd>Tab</kbd></td></tr>
+      <tr><td>지도</td><td><kbd>M</kbd></td></tr>
+      <tr><td>메뉴</td><td><kbd>Esc</kbd></td></tr>
+      <tr><td>자동 퀘스트</td><td><kbd>R</kbd></td></tr>
+      <tr><td>게임 안 도움말</td><td><kbd>F1</kbd></td></tr>
+      <tr><td>CRT 효과 켜기/끄기</td><td><kbd>F2</kbd></td></tr>
+    </table>
+    <h3>콤보</h3>
+    <p>일반 공격과 강공격을 이어서 누르면 콤보가 됩니다. 예: <kbd>Space</kbd> <kbd>Space</kbd> <kbd>X</kbd>. 콤보 횟수는 퀘스트로 늘릴 수 있고, SP가 없으면 쓸 수 없습니다.</p>
+    <p>화면에 보이는 조이스틱과 버튼은 터치나 마우스 클릭으로도 쓸 수 있습니다.</p>
+  </section>
+  <section>
+    <h2>CRT 효과</h2>
+    <p>화면 위쪽의 <b>CRT</b> 버튼이나 <kbd>F2</kbd>로 켜고 끕니다. 스캔라인, 가장자리 어두움, 둥근 모서리 베젤, 약한 빛 번짐을 얹어 옛 휴대폰 게임 같은 분위기를 냅니다. 선택은 이 브라우저에 기억됩니다. 주소 뒤에 <code>?crt=1</code>을 붙여도 켜집니다.</p>
+    <p>원작 그래픽과 같이 쓰면 분위기가 가장 잘 맞습니다. 화면이 답답하면 끄세요.</p>
+  </section>
+  <section>
+    <h2>주인공</h2>
+    <table>
+      <tr><th>이름</th><th>직업 (성장)</th><th>무기</th><th>특징</th></tr>
+      <tr><td>이안</td><td>초보검사 → 검사 → 검의달인</td><td>대검</td><td>초기 힘과 공격력이 높음. 바스토 출신의 순진한 소년. 웹판에서는 제1장 이안만 열려 있습니다.</td></tr>
+      <tr><td>레아</td><td>견습리파이너 → 리파이너 → 하이리파이너</td><td>창</td><td>리치가 긴 공격, 초기 민첩이 높음.</td></tr>
+      <tr><td>케네스</td><td>견습기사 → 기사 → 마스터</td><td>검과 방패</td><td>방어력과 초기 체력이 높음. 리파이너를 지키는 템플러 소속 기사.</td></tr>
+    </table>
+    <h3>능력치</h3>
+    <ul>
+      <li><b>힘</b> 공격력, <b>체력</b> HP 양과 회복 속도</li>
+      <li><b>민첩</b> 명중, 회피, 크리티컬 확률, <b>의지</b> SP 양과 회복 속도</li>
+      <li>레벨업 때 받는 스탯 포인트로 올립니다. HP와 SP는 전투 밖에서 조금씩 차오르고, SP는 공격할 때 줄어듭니다.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>가디언과 속성</h2>
+    <p>새로하기에서 함께할 가디언 2명을 고릅니다. 가디언을 장착하면 캐릭터에게 속성이 붙고 그 가디언의 스킬을 쓸 수 있습니다. 가디언은 경험치를 함께 얻어 성장하고 레벨이 오르면 새 스킬을 배웁니다. 퀘스트로 다른 가디언을 더 얻을 수 있습니다.</p>
+    <table>
+      <tr><th>속성</th><th>성격</th><th>가디언</th><th>스킬 예시</th></tr>
+      <tr><td class="fire">불</td><td>공격형</td><td>헤스티아, 로키</td><td>파이어 볼, 레이지, 파이어 실드, 플레임, 파이어 필라, 인페르노</td></tr>
+      <tr><td class="water">물</td><td>회복형</td><td>란, 노르드</td><td>힐, 리커버리, 리제네레이션, 프로스트, 아이스 실드, 리스토레이션</td></tr>
+      <tr><td class="earth">땅</td><td>혼합형</td><td>표르긴, 게브</td><td>어스퀘이크, 대지의 수호, 대지의 축복, 스톰프, 스톤 파이크, 심연의 키스</td></tr>
+    </table>
+    <p>속성은 불, 물, 땅 세 가지이고 상성에 따라 주는 피해와 받는 피해가 달라집니다. 스킬은 <kbd>1</kbd> <kbd>3</kbd> 단축키에 등록해서 씁니다.</p>
+    <div class="note">가디언과 속성의 짝은 게임 데이터의 표 순서로 정리한 것입니다. 플레어, 리저렉션 같은 일부 스킬은 원작의 네트워크 대전 전용입니다.</div>
+  </section>
+  <section>
+    <h2>팁</h2>
+    <ul>
+      <li>길을 잃으면 <kbd>M</kbd> 지도를 열거나 <kbd>R</kbd> 자동 퀘스트를 써 보세요.</li>
+      <li>회복 아이템은 단축키에 등록해 두고 <kbd>Q</kbd>로 씁니다. 슬롯은 <kbd>E</kbd>로 바꿉니다.</li>
+      <li>리파이너에게 맡기면 아이템을 조합해 더 좋은 아이템이나 재료를 만들 수 있습니다.</li>
+      <li>오브를 쓰면 무기에 특성이 붙고, 특성은 콤보 공격 중에 발동합니다.</li>
+      <li>대장장이는 무기와 갑옷을 개조해 줍니다. 횟수 제한이 있고 실패할 수 있습니다.</li>
+      <li>세이브는 이 브라우저에 저장됩니다. 다른 기기로 옮기려면 타이틀의 환경설정에서 <b>세이브 내보내기 / 가져오기</b>를 쓰세요.</li>
+      <li>상단의 <b>원작 그래픽 | 리마스터</b>로 그림 세트를 바로 바꿀 수 있습니다.</li>
+    </ul>
+  </section>
+</main>
+<footer>
+  게임: 〈영웅서기 솔티아의 바람: 리마스터〉 by <a href="https://www.threads.com/@0xnimdal">Nimdal (@0xnimdal)</a> · 웹 포팅: <a href="https://github.com/LESANF/hero-lord-web">LESANF/hero-lord-web</a><br>
+  게임의 그래픽, 사운드, 스크립트, 데이터는 원작자와 원작 권리자의 것이며 요청이 있으면 내립니다.
+</footer>
+</body>
+</html>

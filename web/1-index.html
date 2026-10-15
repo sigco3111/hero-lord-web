@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, viewport-fit=cover">
+<title>영웅서기 솔티아의 바람: 리마스터</title>
+<meta name="description" content="브라우저 버전">
+<meta property="og:type" content="website">
+<meta property="og:title" content="영웅서기 솔티아의 바람: 리마스터">
+<meta property="og:description" content="브라우저 버전">
+<meta property="og:url" content="https://sigco3111.github.io/hero-lord-web/">
+<meta property="og:image" content="https://sigco3111.github.io/hero-lord-web/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+html, body, #canvas { margin: 0; padding: 0; border: 0; }
+body { background: #0b1326; color: #3a2f2a; overflow: hidden; touch-action: none; font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+#canvas { display: block; }
+#canvas:focus { outline: none; }
+
+/* loading screen */
+#status { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 14px;
+  padding: 0 24px 9vh; box-sizing: border-box; color: #fff; text-align: center;
+  background: #0b1326 url(img/loading.jpg) center / cover no-repeat; transition: opacity .6s ease; }
+#status::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,14,30,0) 45%, rgba(8,14,30,.78) 100%); pointer-events: none; }
+#status > * { position: relative; }
+#status.done { opacity: 0; pointer-events: none; }
+#logo { width: min(58vw, 520px); height: auto; margin-bottom: 6px; image-rendering: auto; filter: drop-shadow(0 6px 22px rgba(0,0,0,.55)); }
+#bar { width: min(72vw, 460px); height: 6px; border-radius: 999px; background: rgba(255,255,255,.18); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+#fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ffd56b, #fff4c2 60%, #ffffff); box-shadow: 0 0 14px rgba(255,214,110,.85); transition: width .15s linear; position: relative; }
+#fill::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: sheen 1.6s linear infinite; }
+@keyframes sheen { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+#status small { font-size: 13px; letter-spacing: .06em; opacity: .8; min-height: 1.2em; }
+#status pre { margin: 0; white-space: pre-wrap; color: #ffb3b3; font-size: 13px; }
+
+/* art switch: lives on the page, above the canvas, top centre where the game draws nothing */
+#artbar { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); display: none; padding: 3px; border-radius: 999px;
+  background: rgba(30, 26, 24, .72); backdrop-filter: blur(6px); box-shadow: 0 2px 8px rgba(0,0,0,.25); touch-action: manipulation; }
+#artbar.show { display: flex; }
+#artbar button { font: 600 13px/1 system-ui, sans-serif; color: rgba(255,255,255,.75); background: none; border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+#artbar button.active { background: #f7f3ea; color: #3a2f2a; }
+#artbar button:focus { outline: none; }
+
+/* ---- CRT filter + bezel (F2 / button) ---- */
+#crt { position: fixed; inset: 0; pointer-events: none; display: none; z-index: 5; border-radius: 4.5vmin;
+  box-shadow: inset 0 0 14vmin 1vmin rgba(0,0,0,.55), inset 0 0 0 .6vmin rgba(255,255,255,.05), 0 0 0 100vmax #08080b;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,.05) 0%, rgba(0,0,0,0) 60%, rgba(0,0,0,.28) 100%),
+    repeating-linear-gradient(180deg, rgba(0,0,0,.20) 0, rgba(0,0,0,.20) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 3px); }
+#crt::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0) 30%);
+  animation: crtflick 4s steps(2, end) infinite; }
+@keyframes crtflick { 0%, 100% { opacity: .9; } 50% { opacity: 1; } }
+body.crt #crt { display: block; }
+body.crt #canvas { filter: contrast(1.1) saturate(1.2) brightness(1.04) drop-shadow(0 0 2px rgba(255,236,200,.35)); border-radius: 4.5vmin; }
+#artbar .sep { width: 1px; margin: 4px 4px; background: rgba(255,255,255,.25); }
+#artbar button.on { background: #7ee0a1; color: #12301f; }
+
+/* ---- F1 help ---- */
+#help { position: fixed; inset: 0; z-index: 20; display: none; align-items: center; justify-content: center; background: rgba(6,10,20,.72); backdrop-filter: blur(3px); }
+#help.show { display: flex; }
+#help .panel { width: min(880px, 94vw); max-height: 88vh; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden;
+  background: #101a2e; color: #e9eefc; box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(255,214,110,.35); }
+#help header { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: linear-gradient(90deg, #1c2c52, #101a2e); border-bottom: 1px solid rgba(255,255,255,.1); }
+#help header h2 { margin: 0; font-size: 17px; flex: 1; color: #ffd56b; letter-spacing: .02em; }
+#help header kbd, #help kbd { font: 600 12px/1 ui-monospace, monospace; padding: 4px 7px; border-radius: 5px; background: #26385f; border: 1px solid #3d5486; border-bottom-width: 2px; color: #fff; white-space: nowrap; }
+#help .x { background: none; border: 0; color: #fff; font-size: 22px; cursor: pointer; padding: 0 4px; }
+#help nav { display: flex; gap: 4px; padding: 8px 12px 0; background: #0c1426; }
+#help nav button { font: 600 14px/1 system-ui, sans-serif; color: #9fb0d8; background: none; border: 0; padding: 10px 16px; border-radius: 8px 8px 0 0; cursor: pointer; }
+#help nav button.active { background: #101a2e; color: #ffd56b; }
+#help .body { padding: 18px 22px 22px; overflow: auto; font-size: 14px; line-height: 1.65; }
+#help .tab { display: none; } #help .tab.active { display: block; }
+#help h3 { margin: 18px 0 8px; font-size: 15px; color: #ffd56b; } #help h3:first-child { margin-top: 0; }
+#help table { border-collapse: collapse; width: 100%; margin: 6px 0 4px; }
+#help td, #help th { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; vertical-align: top; }
+#help th { color: #9fb0d8; font-weight: 600; font-size: 12px; }
+#help ul { margin: 6px 0; padding-left: 20px; } #help li { margin: 3px 0; }
+#help .fire { color: #ff9a7a; } #help .water { color: #7cc6ff; } #help .earth { color: #d9b56c; }
+#help .note { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: rgba(255,214,110,.08); border: 1px solid rgba(255,214,110,.25); font-size: 13px; }
+#help a { color: #8fc2ff; }
+</style>
+</head>
+<body>
+<canvas id="canvas">Your browser does not support the canvas tag.</canvas>
+<div id="artbar" aria-label="그래픽">
+  <button data-art="original">원작 그래픽</button>
+  <button data-art="remaster">리마스터</button>
+  <span class="sep"></span>
+  <button id="btn-crt" title="CRT 효과 (F2)">CRT</button>
+  <button id="btn-help" title="도움말 (F1)">? 도움말</button>
+</div>
+<div id="crt" aria-hidden="true"></div>
+<div id="help" role="dialog" aria-modal="true" aria-label="도움말">
+  <div class="panel">
+    <header><h2>영웅서기 솔티아의 바람 · 도움말</h2><kbd>F1</kbd><kbd>Esc</kbd><button class="x" id="help-x" aria-label="닫기">×</button></header>
+    <nav id="help-tabs">
+      <button data-tab="keys" class="active">조작법</button>
+      <button data-tab="heroes">영웅</button>
+      <button data-tab="guardians">가디언</button>
+      <button data-tab="tips">팁</button>
+    </nav>
+    <div class="body">
+      <div class="tab active" data-tab="keys">
+        <h3>키보드 조작</h3>
+        <table>
+          <tr><th>동작</th><th>키</th></tr>
+          <tr><td>이동</td><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 또는 방향키</td></tr>
+          <tr><td>일반 공격 / 대화 / 조사</td><td><kbd>Space</kbd> <kbd>Enter</kbd></td></tr>
+          <tr><td>강공격</td><td><kbd>X</kbd></td></tr>
+          <tr><td>가디언 스킬 1 / 2</td><td><kbd>1</kbd> / <kbd>3</kbd></td></tr>
+          <tr><td>포션(아이템)</td><td><kbd>Q</kbd></td></tr>
+          <tr><td>슬롯 교체</td><td><kbd>E</kbd> <kbd>Tab</kbd></td></tr>
+          <tr><td>지도</td><td><kbd>M</kbd></td></tr>
+          <tr><td>메뉴</td><td><kbd>Esc</kbd></td></tr>
+          <tr><td>자동 퀘스트</td><td><kbd>R</kbd></td></tr>
+          <tr><td>이 도움말</td><td><kbd>F1</kbd></td></tr>
+          <tr><td>CRT 효과 켜기/끄기</td><td><kbd>F2</kbd></td></tr>
+        </table>
+        <h3>콤보</h3>
+        <p>일반 공격과 강공격을 이어서 누르면 콤보가 됩니다. 예: <kbd>Space</kbd> <kbd>Space</kbd> <kbd>X</kbd>. 콤보 횟수는 퀘스트로 늘릴 수 있고, SP가 없으면 콤보를 쓸 수 없습니다.</p>
+        <p>화면의 버튼은 마우스로 클릭해도 됩니다. 버튼 위에 작게 표시된 글자가 대응하는 키입니다.</p>
+      </div>
+      <div class="tab" data-tab="heroes">
+        <h3>주인공</h3>
+        <table>
+          <tr><th>이름</th><th>직업</th><th>무기</th><th>특징</th></tr>
+          <tr><td>이안</td><td>초보검사 (검사 → 검의달인)</td><td>대검</td><td>초기 힘과 공격력이 높음. 바스토 출신의 순진한 소년. 웹판에서는 제1장 이안만 열려 있습니다.</td></tr>
+          <tr><td>레아</td><td>견습리파이너 (리파이너 → 하이리파이너)</td><td>창</td><td>리치가 긴 공격, 초기 민첩이 높음.</td></tr>
+          <tr><td>케네스</td><td>견습기사 (기사 → 마스터)</td><td>검과 방패</td><td>방어력과 초기 체력이 높음. 리파이너를 지키는 템플러 소속 기사.</td></tr>
+        </table>
+        <h3>능력치</h3>
+        <ul>
+          <li><b>힘</b> 공격력 / <b>체력</b> HP 양과 회복 속도</li>
+          <li><b>민첩</b> 명중, 회피, 크리티컬 확률 / <b>의지</b> SP 양과 회복 속도</li>
+          <li>레벨업 때 받는 스탯 포인트로 올립니다. HP와 SP는 전투 밖에서 조금씩 회복되고, SP는 공격할 때 줄어듭니다.</li>
+        </ul>
+      </div>
+      <div class="tab" data-tab="guardians">
+        <h3>가디언과 속성</h3>
+        <p>새로하기에서 함께할 가디언 2명을 고릅니다. 가디언을 장착하면 캐릭터에게 속성이 붙고 그 가디언의 스킬을 쓸 수 있습니다. 가디언은 경험치를 함께 얻어 성장하고, 레벨이 오르면 새 스킬을 배웁니다. 퀘스트로 다른 가디언을 더 얻을 수 있습니다.</p>
+        <table>
+          <tr><th>속성</th><th>성격</th><th>가디언</th><th>스킬 예시</th></tr>
+          <tr><td class="fire">불</td><td>공격형</td><td>헤스티아, 로키</td><td>파이어 볼, 레이지, 파이어 실드, 플레임, 파이어 필라, 인페르노</td></tr>
+          <tr><td class="water">물</td><td>회복형</td><td>란, 노르드</td><td>힐, 리커버리, 리제네레이션, 프로스트, 아이스 실드, 리스토레이션</td></tr>
+          <tr><td class="earth">땅</td><td>혼합형</td><td>표르긴, 게브</td><td>어스퀘이크, 대지의 수호, 대지의 축복, 스톰프, 스톤 파이크, 심연의 키스</td></tr>
+        </table>
+        <p>속성은 불, 물, 땅 세 가지이고 상성에 따라 주는 피해와 받는 피해가 달라집니다. 스킬은 단축키 <kbd>1</kbd> <kbd>3</kbd>에 등록해서 씁니다.</p>
+        <p class="note">가디언과 속성의 짝은 게임 데이터의 표 순서로 정리한 것입니다. 일부 스킬(플레어, 리저렉션 등)은 원작의 네트워크 대전 전용입니다.</p>
+      </div>
+      <div class="tab" data-tab="tips">
+        <h3>플레이 팁</h3>
+        <ul>
+          <li>길을 잃으면 <kbd>M</kbd> 지도를 열거나 <kbd>R</kbd> 자동 퀘스트를 써 보세요.</li>
+          <li>회복 아이템은 단축키에 등록해 두고 <kbd>Q</kbd>로 씁니다. 슬롯은 <kbd>E</kbd>로 바꿉니다.</li>
+          <li>리파이너에게 맡기면 아이템을 조합해 더 좋은 아이템이나 재료를 만들 수 있습니다.</li>
+          <li>오브를 쓰면 무기에 특성이 붙고, 특성은 콤보 공격 중에 발동합니다.</li>
+          <li>대장장이는 무기와 갑옷을 개조해 줍니다. 횟수 제한이 있고 실패할 수 있습니다.</li>
+          <li>세이브는 이 브라우저에 저장됩니다. 다른 기기로 옮기려면 타이틀의 환경설정에서 <b>세이브 내보내기 / 가져오기</b>를 쓰세요.</li>
+          <li>상단의 <b>원작 그래픽 | 리마스터</b>로 그림 세트를 바로 바꿀 수 있습니다.</li>
+        </ul>
+        <p>더 자세한 안내: <a href="guide.html" target="_blank" rel="noopener">가이드 페이지</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+<input id="save-file" type="file" accept=".json,application/json" hidden>
+<div id="status">
+  <img id="logo" src="img/logo.webp" alt="영웅서기 솔티아의 바람: 리마스터">
+  <div id="bar"><div id="fill"></div></div>
+  <small id="detail">불러오는 중</small>
+  <pre id="notice"></pre>
+</div>
+<script src="godot.js"></script>
+<script>
+// Filled by tools/build_web.py. The PCK ships as 64 MB parts (static hosts tend to
+// cap single files at 100 MB); the parts are fetched in parallel straight into one
+// buffer and handed to the engine.
+const PACK = 'hero-lord.pck';
+const PARTS = __PARTS__;
+const WASM_SIZE = __WASM_SIZE__;
+
+const engine = new Engine({
+  executable: 'godot',
+  canvasResizePolicy: 2,      // adaptive: canvas follows the window
+  focusCanvas: true,
+  experimentalVK: false,
+  serviceWorker: false,
+  fileSizes: { 'godot.wasm': WASM_SIZE },
+});
+const canvas = document.getElementById('canvas');
+const status = document.getElementById('status');
+const fill = document.getElementById('fill');
+const detail = document.getElementById('detail');
+const notice = document.getElementById('notice');
+const artbar = document.getElementById('artbar');
+const artButtons = [...artbar.querySelectorAll('button')];
+
+function fail(err) {
+  console.error(err);
+  document.getElementById('bar').remove();
+  notice.textContent = err instanceof Error ? err.message : String(err);
+}
+
+async function fetchParts(parts) {
+  const total = parts.reduce((sum, [, size]) => sum + size, 0);
+  const all = new Uint8Array(total);
+  let done = 0;
+  let base = 0;
+  await Promise.all(parts.map(([name, size]) => {
+    const offset = base;
+    base += size;
+    return fetch(name).then(async (res) => {
+      if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
+      const reader = res.body.getReader();
+      let got = 0;
+      for (;;) {
+        const { value, done: end } = await reader.read();
+        if (end) break;
+        all.set(value, offset + got);
+        got += value.length;
+        done += value.length;
+        fill.style.width = `${(done / total) * 100}%`;
+        detail.textContent = `${(done / 1048576).toFixed(0)} / ${(total / 1048576).toFixed(0)} MB · ${Math.floor((done / total) * 100)}%`;
+      }
+      if (got !== size) throw new Error(`${name}: got ${got} of ${size} bytes`);
+    });
+  }));
+  return all.buffer;
+}
+
+// Art choice: remembered per browser (first visit: 원작), ?art=original|remaster overrides.
+// It reaches the game twice: as a user arg at start (web_shim.gd writes new_art into
+// user://options.json before the game reads it) and live through window.heroLordSetArt,
+// which the shim exposes; the shim fires 'herolord-art' whenever the game's state changes.
+function remembered() {
+  const q = new URLSearchParams(location.search).get('art');
+  if (q === 'original' || q === 'remaster') return q;
+  try { return localStorage.getItem('art') || 'original'; } catch (e) { return 'original'; }
+}
+function showArt(art) {
+  artButtons.forEach((b) => b.classList.toggle('active', b.dataset.art === art));
+}
+window.addEventListener('herolord-art', (e) => { showArt(e.detail); try { localStorage.setItem('art', e.detail); } catch (err) { /* ignore */ } });
+artButtons.forEach((b) => {
+  b.onclick = () => { if (window.heroLordSetArt) window.heroLordSetArt(b.dataset.art); canvas.focus(); };
+});
+
+// Save import: the game's 환경설정 row (added by the shim) opens this picker; the shim's
+// heroLordImportSaves writes the files and leaves the count on window.heroLordImportResult.
+const saveFile = document.getElementById('save-file');
+saveFile.onchange = async () => {
+  const file = saveFile.files[0];
+  if (!file || !window.heroLordImportSaves) return;
+  window.heroLordImportSaves(await file.text());
+  if (window.heroLordImportResult > 0) setTimeout(() => location.reload(), 1200);   // let IDBFS sync, then 이어하기 lists them
+  else alert('세이브 파일 형식이 아닙니다.');
+  saveFile.value = '';
+};
+
+const missing = Engine.getMissingFeatures({ threads: false });
+if (missing.length) {
+  fail('This browser is missing:\n' + missing.join('\n'));
+} else {
+  const art = remembered();
+  showArt(art);
+  Promise.all([engine.init('godot'), fetchParts(PARTS)])
+    .then(([, pack]) => {
+      engine.preloadFile(pack, PACK);
+      detail.textContent = '시작하는 중';
+      return engine.start({ args: ['--main-pack', PACK, '--', `art=${art}`] });
+    })
+    .then(() => { status.classList.add('done'); setTimeout(() => status.remove(), 700); artbar.classList.add('show'); }, fail);
+}
+
+// ---- CRT toggle + F1 help ----
+(function () {
+  const body = document.body;
+  const btnCrt = document.getElementById('btn-crt');
+  const help = document.getElementById('help');
+  const tabs = [...document.querySelectorAll('#help-tabs button')];
+  const panes = [...document.querySelectorAll('#help .tab')];
+  function setCrt(on) {
+    body.classList.toggle('crt', on);
+    btnCrt.classList.toggle('on', on);
+    try { localStorage.setItem('crt', on ? '1' : '0'); } catch (e) { /* ignore */ }
+  }
+  function initCrt() {
+    const q = new URLSearchParams(location.search).get('crt');
+    let on = false;
+    if (q === '1' || q === '0') on = q === '1';
+    else { try { on = localStorage.getItem('crt') === '1'; } catch (e) { /* ignore */ } }
+    setCrt(on);
+  }
+  function openHelp(tab) {
+    if (tab) selectTab(tab);
+    help.classList.add('show');
+  }
+  function closeHelp() { help.classList.remove('show'); canvas.focus(); }
+  function selectTab(name) {
+    tabs.forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
+    panes.forEach((p) => p.classList.toggle('active', p.dataset.tab === name));
+  }
+  initCrt();
+  btnCrt.onclick = () => { setCrt(!body.classList.contains('crt')); canvas.focus(); };
+  document.getElementById('btn-help').onclick = () => openHelp();
+  document.getElementById('help-x').onclick = closeHelp;
+  help.addEventListener('click', (e) => { if (e.target === help) closeHelp(); });
+  tabs.forEach((b) => { b.onclick = () => selectTab(b.dataset.tab); });
+  if (new URLSearchParams(location.search).get('help') === '1') openHelp();
+  // Capture phase: runs before the engine's key listeners. While help is open the game gets no keys.
+  window.addEventListener('keydown', (e) => {
+    const open = help.classList.contains('show');
+    if (e.key === 'F1') { e.preventDefault(); e.stopImmediatePropagation(); open ? closeHelp() : openHelp(); return; }
+    if (e.key === 'F2') { e.preventDefault(); e.stopImmediatePropagation(); setCrt(!body.classList.contains('crt')); return; }
+    if (!open) return;
+    e.stopImmediatePropagation();
+    if (e.key === 'Escape') { e.preventDefault(); closeHelp(); }
+  }, true);
+  window.addEventListener('keyup', (e) => {
+    if (help.classList.contains('show') || e.key === 'F1' || e.key === 'F2') e.stopImmediatePropagation();
+  }, true);
+})();
+</script>
+</body>
+</html>
